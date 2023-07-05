@@ -5,6 +5,10 @@ import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Icons } from "./icons";
+import { useToast } from "@/components/ui/use-toast";
+import { ToastAction } from "./ui/toast";
+
+import { useRouter } from "next/navigation";
 
 interface UserAuthFormProps extends React.HTMLAttributes<HTMLDivElement> {}
 
@@ -15,6 +19,10 @@ type User = {
 };
 
 export function UserRegisterForm({ className, ...props }: UserAuthFormProps) {
+  const { toast } = useToast();
+
+  const router = useRouter();
+
   const [data, setData] = useState<User>({
     name: "",
     email: "",
@@ -26,6 +34,29 @@ export function UserRegisterForm({ className, ...props }: UserAuthFormProps) {
     event.preventDefault();
     setIsLoading(true);
 
+    const request = await fetch("/api/users/", {
+      method: "POST",
+      headers: {
+        "Content-type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+
+    const response = await request.json();
+
+    console.log("USER REGISTER FROM", response);
+
+    if (!request.ok) {
+      toast({
+        title: "Ooops...",
+        description: response.error,
+        variant: "destructive",
+        action: <ToastAction altText="Try again">Try again</ToastAction>,
+      });
+    } else {
+      console.log(response);
+      router.push("/login");
+    }
     // setTimeout(() => {
     //   setIsLoading(false);
     // }, 5000);
@@ -99,7 +130,7 @@ export function UserRegisterForm({ className, ...props }: UserAuthFormProps) {
             {isLoading && (
               <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
             )}
-            Login
+            Register
           </Button>
         </div>
       </form>

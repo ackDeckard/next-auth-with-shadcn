@@ -5,8 +5,11 @@ import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Icons } from "./icons";
-
 import { signIn } from "next-auth/react";
+import { toast, useToast } from "./ui/use-toast";
+import { ToastAction } from "./ui/toast";
+import { useRouter } from "next/navigation";
+
 interface UserAuthFormProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 type User = {
@@ -15,6 +18,8 @@ type User = {
 };
 
 export function UserLoginForm({ className, ...props }: UserAuthFormProps) {
+  const { toast } = useToast();
+  const router = useRouter();
   const [data, setData] = useState<User>({
     email: "",
     password: "",
@@ -25,10 +30,21 @@ export function UserLoginForm({ className, ...props }: UserAuthFormProps) {
     event.preventDefault();
     setIsLoading(true);
 
-    const rest = await signIn<"credentials">("credentials", {
+    const res = await signIn<"credentials">("credentials", {
       ...data,
       redirect: false,
     });
+
+    if (res?.error) {
+      toast({
+        title: "Oppps...",
+        description: res.error,
+        variant: "destructive",
+        action: <ToastAction altText="Try again">Try again</ToastAction>,
+      });
+    } else {
+      router.push("/");
+    }
 
     // setTimeout(() => {
     //   setIsLoading(false);
